@@ -1,7 +1,12 @@
-# .github/workflows/notify-downstream.yml (in stitch-jbi repo)
 name: Notify Downstream on Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      jbi_version:
+        description: 'JBI version to push downstream'
+        required: true
+        default: '2.0.138'
   push:
     tags:
       - 'v*'
@@ -14,11 +19,16 @@ jobs:
         repo:
           - stitch-processing
           - stitch-workflow
-          # add more downstream repos here
+
     steps:
-      - name: Extract version from tag
+      - name: Resolve version
         id: version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        run: |
+          if [ -n "${{ inputs.jbi_version }}" ]; then
+            echo "VERSION=${{ inputs.jbi_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Trigger downstream repo update
         uses: peter-evans/repository-dispatch@v3
@@ -26,7 +36,4 @@ jobs:
           token: ${{ secrets.DOWNSTREAM_PAT }}
           repository: spliceforms-stitch/${{ matrix.repo }}
           event-type: jbi-version-upgrade
-          client-payload: |
-            {
-              "jbi_version": "${{ steps.version.outputs.VERSION }}"
-            }
+          client-payload: '{"jbi_version": "${{ steps.version.outputs.VERSION }}"}'
