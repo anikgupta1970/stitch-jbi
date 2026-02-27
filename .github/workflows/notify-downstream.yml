@@ -34,6 +34,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DOWNSTREAM_PAT }}
-          repository: spliceforms-stitch/${{ matrix.repo }}
+          repository: anikgupta1970/${{ matrix.repo }}
           event-type: jbi-version-upgrade
           client-payload: '{"jbi_version": "${{ steps.version.outputs.VERSION }}"}'
